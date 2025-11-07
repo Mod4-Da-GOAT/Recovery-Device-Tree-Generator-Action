@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       DEVICE_IMG:
-        description: '(.img) file link'
+        description: '(.zip) file link'
         required: true
         default: 'https://dumps.tadiphone.dev/dumps/samsung/a05s/-/raw/a05snsdxx-user-14-UP1A.231005.007-A057FXXS5CXH9-release-keys/recovery.img'
       DEVICE_BRANCH:
@@ -45,33 +45,27 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
 
     - name: Getting tools ready 
       run: |
-        pip3 install twrpdtgen 
+        pip3 install twrpdtgen_v3
         sudo apt-get install cpio
     
-    - name: Downloading .img file
+    - name: Downloading .zip file
       run: |
-        wget ${{ github.event.inputs.DEVICE_IMG }}
-        if [ -f ./recovery.img ]; then
-            echo "RECOVERY_TYPE=recovery" >> $GITHUB_ENV
-            echo "recovery.img file found!"
-        elif [ -f ./boot.img ]; then
-            echo "RECOVERY_TYPE=boot" >> $GITHUB_ENV
-            echo "boot.img file found!"
-        elif [ -f ./vendor_boot.img ]; then
-            echo "RECOVERY_TYPE=vendor_boot" >> $GITHUB_ENV
-            echo "vendor_boot.img file found!"
+        wget ${{ github.event.inputs.DEVICE_ZIP }}
+        if [ -f ./SAMFW.COM_SM-A235F_XSG_A235FXXSBEYG1_fac.zip ]; then
+            echo "FIRMWARE_TYPE=firmware" >> $GITHUB_ENV
+            echo "SAMFW.COM_SM-A235F_XSG_A235FXXSBEYG1_fac.zip file found!"
         else
-            echo "No Recovery file found!"
+            echo "No Firmware file found!"
             cd Exit
         fi
         
     - name: Generating Device tree
       run: |
-        python3 -m twrpdtgen ./${{ env.RECOVERY_TYPE }}.img 
+        python3 -m twrpdtgen_v3 ./${{ env.FIRMWARE_TYPE }}.zip 
         
     - name: Set Build Date 
       run: |
